@@ -1,0 +1,7 @@
+Invoice Number: INV-2026-005
+Vendor Name: Acme Corporation
+Date: 2026-03-01
+Total Amount: 16500.00
+GST: 1300.00
+Products:
+Enterprise Cloud Licensing | Qty: 1 | Price: 15200.00

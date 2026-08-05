@@ -1,0 +1,35 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment secrets (DO NOT COMMIT API KEYS TO GITHUB)
+.env
+
+# Python cache & build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite & Vector databases (auto-generated)
+database/company.db
+database/chroma_db/
+
+# Processing temp directories
+processing/
+processed/
+rejected/
+human_review/
+
+# Logs & OS system files
+logs/
+.DS_Store
+Thumbs.db
+
+*.db
+scratch/
+
+
+tests/
+

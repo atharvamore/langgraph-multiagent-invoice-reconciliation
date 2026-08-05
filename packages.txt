@@ -1,2 +1,1 @@
-tesseract-ocr
-libgl1-mesa-glx
+# Streamlit Cloud system packages

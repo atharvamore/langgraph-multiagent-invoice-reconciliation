@@ -19,14 +19,18 @@ UPLOAD_DIR = "incoming_invoices"
 st.set_page_config(layout="wide", page_title="AI Invoice Reconciliation Portal")
 st.title("AI-Powered Invoice Reconciliation Dashboard")
 
-# Ensure intake directory exists and initialize SQLite schema & baseline data on startup
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-if not os.path.exists(DB_PATH):
+# Ensure intake directory exists and initialize SQLite schema & baseline data ONCE on server startup
+@st.cache_resource
+def setup_initial_database():
+    """Create SQLite database schema and baseline reference purchase orders once on server start."""
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
     try:
         init_db()
         seed_company_invoices()
     except Exception as e:
-        st.warning(f"Database initialization warning: {e}")
+        print(f"Database setup notice: {e}")
+
+setup_initial_database()
 
 # Initialize Chatbot Agent in Streamlit session state
 if "chatbot" not in st.session_state:
@@ -39,12 +43,6 @@ if "messages" not in st.session_state:
 # Database connection helper
 def get_db_connection():
     """Open a SQLite connection that returns rows as dictionary-like objects."""
-    if not os.path.exists(DB_PATH):
-        try:
-            init_db()
-            seed_company_invoices()
-        except Exception:
-            pass
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -57,19 +55,8 @@ def load_metrics():
         df = pd.read_sql_query("SELECT * FROM processed_invoices", conn)
     except Exception:
         df = pd.DataFrame()
-    conn.close()
-
-    # Auto-seed database if empty so charts render immediately on deployment
-    if df.empty:
-        try:
-            init_db()
-            seed_company_invoices()
-            conn = get_db_connection()
-            df = pd.read_sql_query("SELECT * FROM processed_invoices", conn)
-            conn.close()
-        except Exception:
-            pass
-
+    finally:
+        conn.close()
     return df
 
 # Fetch Human Review statistics from the audit log

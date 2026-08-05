@@ -12,8 +12,7 @@ __pycache__/
 *.pyo
 *.pyd
 
-# SQLite & Vector databases (auto-generated)
-database/company.db
+# Vector database cache
 database/chroma_db/
 
 # Processing temp directories
@@ -26,10 +25,5 @@ human_review/
 logs/
 .DS_Store
 Thumbs.db
-
-*.db
 scratch/
-
-
 tests/
-

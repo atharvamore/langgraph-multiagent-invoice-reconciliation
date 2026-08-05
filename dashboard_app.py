@@ -10,27 +10,14 @@ import json
 from agents.chatbot_agent import ChatbotAgent
 from agents.retrieval_agent import CompanyRetrievalAgent
 
-# Import database initialization and seeding helpers
-from database.seed_data import init_db, seed_company_invoices
-
 DB_PATH = "database/company.db"
 UPLOAD_DIR = "incoming_invoices"
 
 st.set_page_config(layout="wide", page_title="AI Invoice Reconciliation Portal")
 st.title("AI-Powered Invoice Reconciliation Dashboard")
 
-# Ensure intake directory exists and initialize SQLite schema & baseline data ONCE on server startup
-@st.cache_resource
-def setup_initial_database():
-    """Create SQLite database schema and baseline reference purchase orders once on server start."""
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    try:
-        init_db()
-        seed_company_invoices()
-    except Exception as e:
-        print(f"Database setup notice: {e}")
-
-setup_initial_database()
+# Ensure intake directory exists
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Initialize Chatbot Agent in Streamlit session state
 if "chatbot" not in st.session_state:
@@ -87,15 +74,6 @@ with st.sidebar:
 
     if st.button("Refresh dashboard"):
         st.rerun()
-        
-    if st.button("Seed Sample Database & Invoices"):
-        try:
-            init_db()
-            seed_company_invoices()
-            st.success("Sample database seeded successfully!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Seeding error: {e}")
     
     # Direct File Uploader
     uploaded_file = st.file_uploader(

@@ -19,11 +19,15 @@ st.title("AI-Powered Invoice Reconciliation Dashboard")
 # Ensure intake directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Initialize Chatbot Agent in Streamlit session state
+from main_pipeline import ReconciliationPipelineEngine
+
+# Initialize Chatbot & Pipeline Agents in Streamlit session state
 if "chatbot" not in st.session_state:
     st.session_state.chatbot = ChatbotAgent()
 if "retrieval_agent" not in st.session_state:
     st.session_state.retrieval_agent = CompanyRetrievalAgent()
+if "pipeline_engine" not in st.session_state:
+    st.session_state.pipeline_engine = ReconciliationPipelineEngine()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -93,13 +97,16 @@ with st.sidebar:
                 
                 st.session_state[file_state_key] = True
                 
+                with st.spinner(f"Processing '{uploaded_file.name}' through LangGraph pipeline..."):
+                    st.session_state.pipeline_engine.process_document(target_path)
+                
                 st.session_state.messages.append({
                     "role": "assistant",
-                    "content": f"📥 **File Received**: I have received `{uploaded_file.name}` and routed it to the automated ingestion queue. The background daemon will process it shortly!"
+                    "content": f"✅ **Processing Complete**: Invoice `{uploaded_file.name}` has been ingested, validated, matched against PO records, and updated on the dashboard!"
                 })
                 st.rerun()
             except Exception as e:
-                st.error(f"Failed to ingest file: {e}")
+                st.error(f"Failed to process file: {e}")
 
     st.markdown("---")
     

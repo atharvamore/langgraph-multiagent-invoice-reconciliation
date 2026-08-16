@@ -115,40 +115,46 @@ flowchart TD
 
 ```
 langgraph-multiagent-invoice-reconciliation/
-├── config/
-│   └── settings.py               # Central environment constants and path settings
+├── .devcontainer/
+│   └── devcontainer.json         # Development container configuration
 ├── agents/
-│   ├── intake_agent.py           # File registration, UUID generation, workspace isolation
-│   ├── file_detection_agent.py   # File extension and PDF text stream inspector
+│   ├── chatbot_agent.py          # MCP AI Chatbot Assistant powering Streamlit sidebar
+│   ├── dashboard_agent.py        # Dashboard metrics helper agent
+│   ├── decision_agent.py         # Governance policy decision engine & file router
 │   ├── extraction_agent.py       # Raw text extraction & OCR manager
 │   ├── extraction_agent_llm.py   # Groq 120B LLM extraction & regex fallback parser
-│   ├── validation_agent.py       # Business validation rules (duplicates, dates, pricing)
-│   ├── retrieval_agent.py        # 3-Tier hybrid retrieval engine (SQL, RapidFuzz, Vector)
+│   ├── file_detection_agent.py   # Extension inspector & text stream detector
+│   ├── intake_agent.py           # File intake registration & workspace isolator
 │   ├── matching_agent.py         # Amount variance & line-item similarity calculator
-│   ├── decision_agent.py         # Governance policy decision engine and disk router
-│   └── chatbot_agent.py          # MCP chatbot assistant powering Streamlit sidebar
-├── ocr/
-│   └── ocr_engine.py             # PaddleOCR, PyTesseract, and pypdf extraction service
+│   ├── retrieval_agent.py        # 3-Tier hybrid retrieval engine (SQL, RapidFuzz, Vector)
+│   └── validation_agent.py       # Business validation rules (duplicates, dates, pricing)
+├── config/
+│   └── settings.py               # Central environment constants and path settings
+├── database/
+│   ├── company.db                # Pre-populated SQLite database (48 POs + 129 audit records)
+│   ├── load_json_to_db.py        # Bulk JSON invoice loader
+│   ├── schema.sql                # SQLite relational database DDL schema
+│   └── seed_data.py              # Reference purchase order database seeder
 ├── guardrails/
 │   ├── schemas.py                # Pydantic schema models
 │   └── validators.py             # Schema validation & math verification engine
-├── vector_db/
-│   └── vector_service.py         # ChromaDB ONNX vector store for product embeddings
+├── incoming_invoices/
+│   ├── demo01.txt                # Sample text invoice for testing
+│   └── demo_invoice.txt          # Sample text invoice for testing
 ├── mcp/
 │   └── tool_registry.py          # Model Context Protocol tool definitions (@tool)
-├── database/
-│   ├── company.db                # Pre-populated SQLite database (48 POs + 129 audit records)
-│   ├── schema.sql                # SQLite relational database DDL schema
-│   ├── seed_data.py              # Reference purchase order database seeder
-│   └── load_json_to_db.py        # Bulk JSON enterprise invoice loader
+├── ocr/
+│   └── ocr_engine.py             # PaddleOCR, PyTesseract, and pypdf extraction service
 ├── utils/
-│   └── logger.py                 # Centralized logging setup writing to stdout & log files
+│   └── logger.py                 # Centralized logging setup
+├── vector_db/
+│   └── vector_service.py         # ChromaDB ONNX vector store for product embeddings
+├── .gitignore                    # Git ignore specifications
+├── check_db.py                   # CLI database inspection utility
 ├── dashboard_app.py              # Streamlit audit dashboard interface
-├── main_pipeline.py              # Main Orchestrator built on LangGraph StateGraph
 ├── folder_watcher.py             # Background directory monitoring daemon
-├── export_tableau_dataset.py     # Tableau CSV dataset exporter
+├── main_pipeline.py              # Main Orchestrator built on LangGraph StateGraph
 ├── requirements.txt              # Project Python dependencies
-├── .env.example                  # Environment configuration template
 └── README.md                     # Project documentation
 ```
 
@@ -205,7 +211,7 @@ pip install -r requirements.txt
 
 ### Step 3: Configure Environment Variables
 
-Copy `.env.example` to `.env` in the root directory:
+Create `.env` in the root directory:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here

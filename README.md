@@ -1,10 +1,21 @@
 # Enterprise AI Invoice Reconciliation Engine and Audit Platform
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
+
 ## Overview
 
-The Enterprise AI Invoice Reconciliation Engine is an autonomous multi-agent platform designed to automate accounts payable audits. It ingests multi-format vendor bills (digital PDFs, scanned images, plain text), extracts structured data using Groq's flagship 120B model (openai/gpt-oss-120b), validates financial mathematics through deterministic guardrails, and matches vendor bills against internal purchase orders using a 3-tier hybrid retrieval engine (SQL, RapidFuzz, and ChromaDB ONNX Vector Search).
+The Enterprise AI Invoice Reconciliation Engine is an autonomous multi-agent platform designed to automate accounts payable audits. It ingests multi-format vendor bills (digital PDFs, scanned images, plain text), extracts structured data using Groq's flagship 120B model (`openai/gpt-oss-120b`), validates financial mathematics through deterministic guardrails, and matches vendor bills against internal purchase orders using a 3-tier hybrid retrieval engine (SQL, RapidFuzz, and ChromaDB ONNX Vector Search).
 
-Operating on a stateful LangGraph state machine, the system auto-approves matching bills (<5% variance), routes minor discrepancies (5-15% variance) to a Streamlit Human Review Dashboard, and auto-rejects high-variance or invalid bills (>15% variance).
+Operating on a stateful LangGraph state machine, the system auto-approves matching bills ($\le 5\%$ variance) and routes any invoice with variance $> 5\%$ (including minor discrepancies and high-variance bills) to the interactive Streamlit Audit Dashboard for human review, audit inspection, and reviewer decision making.
+
+---
+
+## Live Streamlit Cloud Deployment
+
+The application is deployed live on **Streamlit Community Cloud**:
+
+- **Live Web Application:** Deployed and accessible online via Streamlit Cloud.
+- **Interactive Features:** Real-time invoice file uploader, live processing progress, side-by-side human audit drawer, and an integrated Model Context Protocol (MCP) AI Chatbot.
 
 ---
 
@@ -12,12 +23,12 @@ Operating on a stateful LangGraph state machine, the system auto-approves matchi
 
 - **Stateful Multi-Agent Orchestration:** Built on LangGraph StateGraph with checkpointing and error state routing.
 - **Multi-Modal Document Parsing:** Processes digital PDFs, text files, and scanned images (PNG, JPG) using PaddleOCR and PyTesseract OCR engines.
-- **Flagship 120B LLM Extraction:** Parses unstructured document text into strict JSON using Groq LPU acceleration (openai/gpt-oss-120b) via LangChain init_chat_model.
+- **Flagship 120B LLM Extraction:** Parses unstructured document text into strict JSON using Groq LPU acceleration (`openai/gpt-oss-120b`) via LangChain `init_chat_model`.
 - **Offline Fallback Engine:** Features a local regex and pattern-matching parser that maintains system availability during cloud LLM API outages.
-- **Deterministic Financial Guardrails & Normalizer:** Sanitizes string amounts, verifies mandatory Pydantic schema keys, and enforces mathematical integrity (sum of item totals + GST == Total Amount) before database entry.
+- **Deterministic Financial Guardrails & Normalizer:** Sanitizes string amounts, verifies mandatory Pydantic schema keys, and enforces mathematical integrity (`sum of item totals + GST == Total Amount`) before database entry.
 - **3-Tier Hybrid Retrieval Engine:** Combines exact SQL lookup, RapidFuzz vendor candidate ranking, and ChromaDB dense ONNX vector embeddings for semantic product matching.
 - **Model Context Protocol (MCP) Integration:** Exposes standardized database tools to an AI Chatbot Assistant for natural language dashboard queries.
-- **Real-Time Audit Dashboard:** Streamlit UI providing real-time metric cards, side-by-side human review drawers, and live response streaming (st.write_stream).
+- **Real-Time Audit Dashboard:** Streamlit UI providing real-time metric cards, side-by-side human review drawers, and live response streaming (`st.write_stream`).
 
 ---
 
@@ -83,10 +94,9 @@ flowchart TD
         E3 --> E4{"Policy Threshold Evaluation"}
         
         E4 -- "Variance <= 5.0% and Match >= 80%" --> F1["Decision: APPROVED<br/>Move file to /processed"]
-        E4 -- "5.0% < Variance <= 15.0%" --> F2["Decision: HUMAN_REVIEW<br/>Move file to /human_review"]
-        E4 -- "Variance > 15.0%" --> F3["Decision: REJECTED<br/>Move file to /rejected"]
+        E4 -- "Variance > 5.0%" --> F2["Decision: HUMAN_REVIEW / REJECTED<br/>Route to Interactive Streamlit Audit Dashboard"]
         
-        F1 & F2 & F3 --> F4[("SQLite Final Audit Log<br/>State: DECIDED")]
+        F1 & F2 --> F4[("SQLite Final Audit Log<br/>State: DECIDED")]
     end
 
     subgraph INTERFACE["6. Interactive Audit Dashboard and MCP Chatbot"]
@@ -104,7 +114,7 @@ flowchart TD
 ## Project Structure
 
 ```
-gen-ai-/
+langgraph-multiagent-invoice-reconciliation/
 ├── config/
 │   └── settings.py               # Central environment constants and path settings
 ├── agents/
@@ -127,6 +137,7 @@ gen-ai-/
 ├── mcp/
 │   └── tool_registry.py          # Model Context Protocol tool definitions (@tool)
 ├── database/
+│   ├── company.db                # Pre-populated SQLite database (48 POs + 129 audit records)
 │   ├── schema.sql                # SQLite relational database DDL schema
 │   ├── seed_data.py              # Reference purchase order database seeder
 │   └── load_json_to_db.py        # Bulk JSON enterprise invoice loader
@@ -135,10 +146,8 @@ gen-ai-/
 ├── dashboard_app.py              # Streamlit audit dashboard interface
 ├── main_pipeline.py              # Main Orchestrator built on LangGraph StateGraph
 ├── folder_watcher.py             # Background directory monitoring daemon
-├── image_bill_generater.py       # Generator script for test invoice PNG images
-├── pdf_generate.py               # Generator script for test invoice PDF files
+├── export_tableau_dataset.py     # Tableau CSV dataset exporter
 ├── requirements.txt              # Project Python dependencies
-├── packages.txt                  # Linux container system packages for Streamlit Cloud
 ├── .env.example                  # Environment configuration template
 └── README.md                     # Project documentation
 ```
@@ -148,16 +157,23 @@ gen-ai-/
 ## Technology Stack
 
 - **Orchestration:** LangGraph (StateGraph, MemorySaver)
-- **LLM Engine:** Groq LPU Inference (openai/gpt-oss-120b)
-- **Unified Standard:** LangChain init_chat_model
+- **LLM Engine:** Groq LPU Inference (`openai/gpt-oss-120b`)
+- **Unified Standard:** LangChain `init_chat_model`
 - **Vector Storage:** ChromaDB with ONNX DefaultEmbeddingFunction
-- **Tool Protocol:** Model Context Protocol (MCP) via LangChain @tool decorators
+- **Tool Protocol:** Model Context Protocol (MCP) via LangChain `@tool` decorators
 - **OCR Engine:** PaddleOCR, PyTesseract, pypdf
 - **Fuzzy Matching:** RapidFuzz (C++ Levenshtein string scoring)
 - **Data Validation:** Pydantic v2
-- **Relational Storage:** SQLite3
-- **Presentation:** Streamlit (st.write_stream real-time token streaming)
+- **Relational Storage:** SQLite3 (`company.db`)
+- **Presentation:** Streamlit (`st.write_stream` real-time token streaming)
 - **Directory Monitoring:** Watchdog daemon
+
+---
+
+## Decision Policy Thresholds
+
+- **Variance $\le$ 5.0% and Match Score $\ge$ 80%:** Auto-Approved (File routed to `/processed` state).
+- **Variance > 5.0% (Minor Discrepancies & High Variance):** Flagged for Human Review and displayed in the interactive Streamlit Audit Dashboard for reviewer inspection, manual verification, and approval/rejection decision making.
 
 ---
 
@@ -166,14 +182,14 @@ gen-ai-/
 ### Prerequisites
 
 - Python 3.11+
-- Virtual environment (.venv)
+- Virtual environment (`.venv`)
 - Groq API Key
 
 ### Step 1: Clone and Set Up Virtual Environment
 
 ```bash
-git clone <repository_url>
-cd gen-ai-
+git clone https://github.com/atharvamore/langgraph-multiagent-invoice-reconciliation.git
+cd langgraph-multiagent-invoice-reconciliation
 python -m venv .venv
 ```
 
@@ -202,19 +218,19 @@ MODEL_PROVIDER=groq
 
 ## How to Run the Project
 
-### Option 1: Process a Single Invoice via Main Pipeline (CLI)
-
-```bash
-python -c "from main_pipeline import ReconciliationPipelineEngine; engine = ReconciliationPipelineEngine(); engine.process_document('incoming_invoices/sample_bill.pdf')"
-```
-
-### Option 2: Launch the Streamlit Audit Dashboard
+### Option 1: Launch the Streamlit Audit Dashboard (Local)
 
 ```bash
 streamlit run dashboard_app.py
 ```
 
 Open your browser at `http://localhost:8501` to view metrics, upload invoices, review pending bills, and interact with the MCP AI Chatbot.
+
+### Option 2: Process a Single Invoice via Main Pipeline (CLI)
+
+```bash
+python -c "from main_pipeline import ReconciliationPipelineEngine; engine = ReconciliationPipelineEngine(); engine.process_document('incoming_invoices/sample_bill.pdf')"
+```
 
 ### Option 3: Run the Background Directory Watcher
 
@@ -228,24 +244,16 @@ Any file dropped into `incoming_invoices/` will automatically trigger full pipel
 
 ## Deployment on Streamlit Community Cloud
 
-1. Push your repository to GitHub (ensure `requirements.txt`, `packages.txt`, and `dashboard_app.py` are included).
-2. Log into share.streamlit.io using GitHub.
-3. Click "New app", select your repository, main branch, and set main file path to `dashboard_app.py`.
-4. Under Advanced Settings -> Secrets, add your environment variables:
+1. Push your repository to GitHub (ensure `requirements.txt`, `dashboard_app.py`, and `database/company.db` are included).
+2. Log into [share.streamlit.io](https://share.streamlit.io) using GitHub.
+3. Click "New app", select repository `atharvamore/langgraph-multiagent-invoice-reconciliation`, main branch, and set main file path to `dashboard_app.py`.
+4. Under Advanced Settings $\rightarrow$ Secrets, add your environment variables:
    ```toml
    GROQ_API_KEY = "your_groq_api_key_here"
    GROQ_MODEL = "openai/gpt-oss-120b"
    MODEL_PROVIDER = "groq"
    ```
 5. Click "Deploy!".
-
----
-
-## Decision Policy Thresholds
-
-- **Variance <= 5.0% and Match Score >= 80%:** Auto-Approved (File moved to `/processed`).
-- **5.0% < Variance <= 15.0%:** Human Review Required (File moved to `/human_review` and flagged on Streamlit queue).
-- **Variance > 15.0%:** Auto-Rejected (File moved to `/rejected`).
 
 ---
 

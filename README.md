@@ -1,6 +1,6 @@
 # Enterprise AI Invoice Reconciliation Engine and Audit Platform
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://langgraph-multiagent-invoice-reconciliation.streamlit.app/)
 
 ## Overview
 
@@ -10,11 +10,11 @@ Operating on a stateful LangGraph state machine, the system auto-approves matchi
 
 ---
 
-## Live Streamlit Cloud Deployment
+## 🌐 Live Streamlit Cloud Deployment
 
-The application is deployed live on **Streamlit Community Cloud**:
+The application is deployed live and publicly accessible on **Streamlit Community Cloud**:
 
-- **Live Web Application:** Deployed and accessible online via Streamlit Cloud.
+- **Live Web Application URL:** [https://langgraph-multiagent-invoice-reconciliation.streamlit.app/](https://langgraph-multiagent-invoice-reconciliation.streamlit.app/)
 - **Interactive Features:** Real-time invoice file uploader, live processing progress, side-by-side human audit drawer, and an integrated Model Context Protocol (MCP) AI Chatbot.
 
 ---
@@ -253,7 +253,7 @@ Any file dropped into `incoming_invoices/` will automatically trigger full pipel
    GROQ_MODEL = "openai/gpt-oss-120b"
    MODEL_PROVIDER = "groq"
    ```
-5. Click "Deploy!".
+5. Click "Deploy!". Live app URL: [https://langgraph-multiagent-invoice-reconciliation.streamlit.app/](https://langgraph-multiagent-invoice-reconciliation.streamlit.app/)
 
 ---
 
